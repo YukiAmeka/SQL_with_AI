@@ -1,0 +1,191 @@
+User
+How to create a new SQL Server instance in Microsoft Azure?
+ChatGPT
+Creating a new SQL Server instance in Microsoft Azure can be done using Azure SQL Database, a fully managed platform as a service (PaaS) Database Engine. The following steps guide you through the process:
+
+Log in to your Azure account: Go to the Azure portal at https://portal.azure.com/ and sign in with your Microsoft account credentials.
+
+Create a new SQL database: On the Azure portal's left-hand menu, select "Create a resource". Then, in the "New" window, search for "SQL Database" and select it.
+
+Configure the SQL database:
+
+Subscription: Choose your subscription.
+Resource Group: Create a new one or use an existing one. This group will contain your SQL database.
+Database name: Provide a name for your database.
+Server: Create a new server. You will need to input the server name, server admin login, password, and location.
+Want to use SQL elastic pool?: Select whether or not to use an elastic pool. For a basic setup, you can select 'No'.
+Compute + storage: Choose the performance level of your database. For a simple application, you can choose the Basic option.
+Click "Next" to configure networking options.
+Configure networking:
+
+Choose "Public endpoint" or "Private endpoint" based on your needs. If you're not sure, select "Public endpoint".
+Select "Add current client IP address" if you want to connect to the database from your current machine.
+Click "Next" to move to the additional settings.
+Additional settings:
+
+Use existing data: Select 'Sample' if you want some sample data to be created along with the database or 'None' if you want an empty database.
+Advanced data security: You can enable or disable this based on your needs. By default, it's enabled for a new server and carries an additional cost.
+After selecting the appropriate options, click on "Review + create".
+Review your settings and create the database: Azure will validate your configuration, and if everything is fine, you can click on "Create" to provision and deploy the SQL database. This process may take a few minutes.
+
+Connect to your database: Once your database is ready, you can connect to it using SQL Server Management Studio or Azure Data Studio by using the server name and admin login credentials that you provided during the setup.
+
+Remember, this process creates a managed SQL database on Azure, not a full SQL Server instance. This service is designed to be easy to manage and scale, with many administration tasks handled automatically. If you need a full SQL Server instance in Azure, you should look into Azure Virtual Machines and install SQL Server on a VM. That is a different process and offers different benefits and drawbacks compared to Azure SQL Database.
+
+
+
+
+
+User
+Creation of SQL Database failed. What does Resource disallowed by policy mean?
+ChatGPT
+The error message "Resource disallowed by policy" means that the resource you're trying to create, in this case, an Azure SQL Database, is disallowed by a policy defined in Azure Policy.
+
+Azure Policy is a service in Azure that you use to create, assign, and manage policies. These policies enforce different rules and effects over your resources, so those resources stay compliant with your corporate standards and service level agreements. Azure Policy does this by running evaluations of your resources and scanning for those not compliant with the policies you have created.
+
+Here's how you can review and adjust these policies:
+
+Access Azure Policy: In the Azure portal, select "Policy" from the left-hand menu.
+
+View assigned policies: Look at the "Assigned policy" option. Here, you can see all the policies applied to your resources.
+
+Review disallowed resource types: Look for a policy that disallows certain resource types. This policy might be the reason why you're unable to create an SQL Database.
+
+Modify or remove the policy: If you find a policy that's blocking your database creation, and if you have the appropriate permissions, you may modify or remove the policy. However, be careful while doing this and ensure that you're not violating any organizational rules or standards.
+
+If you're not an administrator or don't have the required permissions, you will need to contact your Azure administrator or IT department for assistance.
+
+Remember, policies are typically in place for a reason, such as preventing unintentional cost overruns or ensuring compliance with regulatory requirements. Be sure you understand the implications of modifying or removing a policy before you proceed.
+
+
+
+
+
+User
+I don't have access to the policy. Also, I'm using Cloud Guru and I can see raw error. How to interpret message "Resource 'generativeaianyalevchenko' was disallowed by policy. Policy identifiers: '[{\"policyAssignment\":{\"name\":\"allowed-sql-dbs\",\"id\":\"/providers/Microsoft.Management/managementGroups/vadergen2labs/providers/Microsoft.Authorization/policyAssignments/allowed-sql-dbs\"},\"policyDefinition\":{\"name\":\"allowed-sql-dbs\",\"id\":\"/providers/Microsoft.Management/managementGroups/vadergen2labs/providers/Microsoft.Authorization/policyDefinitions/allowed-sql-dbs\"?
+ChatGPT
+The error message you provided shows that the resource 'generativeaianyalevchenko' (presumably your Azure SQL database) is disallowed by a policy. This policy, named 'allowed-sql-dbs', is assigned at a Management Group level, which typically applies to all subscriptions within that group.
+
+The policy likely defines what kinds of SQL databases can be created (or other parameters associated with them), and your attempted action does not align with these rules.
+
+Here are some steps you could take:
+
+Contact your administrator or the policy owner: Since you don't have access to modify or remove the policy, the best action would be to reach out to your Azure administrator or the owner of the policy (it may be a Cloud Architecture team or Cloud Governance team). Explain the situation and ask them for assistance in either modifying the policy, granting an exemption, or finding an alternative way to accomplish your task within the constraints of the policy.
+
+Examine the resource you're trying to create: Ensure that the parameters of the SQL database you're attempting to create (like its tier, performance level, capacity, location, etc.) are in line with what's allowed in your organization.
+
+Try creating the resource with a different configuration: If it's feasible, try changing some parameters of the database (like choosing a different tier or region) to see if that will allow the resource to be created. However, this is a trial-and-error approach and may not always lead to a solution.
+
+It's worth noting that the policies in place within an organization's Azure environment are typically there to manage costs, maintain security, and ensure compliance with various standards. It's crucial to work within these guidelines rather than trying to circumvent them.
+
+
+
+
+
+User
+What are basic parameters for creating a sql database in cloud guru playground for azure?
+ChatGPT
+Cloud Guru playground for Azure is an interactive learning environment where you can practice and learn Azure services. However, the exact parameters and policies might depend on the specific configuration of the playground provided by Cloud Guru, which can vary.
+
+Generally, to create a SQL database in Azure (including in a learning environment like Cloud Guru), you would need the following parameters:
+
+Subscription: A valid Azure subscription you have access to.
+
+Resource Group: An Azure resource group where the SQL server and the database will be created.
+
+Database Name: A unique name for your new database.
+
+Server: The server on which the database will be hosted. This might involve creating a new server or using an existing one. If you're creating a new server, you will need to provide a unique server name, admin login, and password.
+
+Compute + Storage (Performance tier): You need to choose the performance level for your database. For basic usage or for learning, you might choose the Basic tier, which offers the least resources but is also the least expensive.
+
+Networking Configuration: By default, Azure SQL Database creates a firewall at the server level. This firewall prevents all access to your database server until you specify which computers have permission. The simplest setting for the playground might be to allow Azure services and your local IP to access the database.
+
+Additional Settings: Here you can choose to use existing data (None for a blank database or Sample for a database pre-populated with some sample data).
+
+If you're facing an issue with creating a SQL database in the Cloud Guru playground, it might be due to specific policies or restrictions in the playground. The policy error you mentioned earlier suggests that there's an Azure Policy in place that's restricting what you can do. You might need to contact Cloud Guru support or follow the specific instructions provided in your Cloud Guru course if it's a part of your learning path.
+
+
+
+
+
+User
+I've created the instance. Now, I need to upload a bacpac into Azure SQL Server instance using Azure Data Studio. How do I do that?
+ChatGPT
+To upload a BACPAC file to an Azure SQL Server instance using Azure Data Studio, follow the steps below:
+
+Install Azure Data Studio: If you haven't installed Azure Data Studio yet, download it from Microsoft's official website and install it on your machine.
+
+Connect to your Azure SQL Server:
+
+Launch Azure Data Studio.
+Click on the "New Connection" button (or File -> New Connection).
+Fill in the details for your Azure SQL Server instance (server name, authentication type, username, password).
+Click "Connect".
+Create a new database: Right-click on "Databases" in the SERVERS panel, and select "New Database". Enter a name for your new database, then click "OK".
+
+Import BACPAC file:
+
+Right-click on the newly created database, select "Tasks", then "Import BACPAC".
+In the "Import BACPAC" window, click on "..." next to the "BACPAC file" text box, and navigate to the BACPAC file on your local machine.
+Click "OK". The import operation might take some time depending on the size of the BACPAC file.
+Please note that Azure Data Studio may not have all the features of SQL Server Management Studio (SSMS) as of my knowledge cutoff in September 2021, including the GUI to import BACPAC files. If Azure Data Studio doesn't support this functionality, you'll need to use SSMS or the sqlpackage command-line utility to import the BACPAC file.
+
+If you are using SQL Server Management Studio, the process would be similar but under the "Tasks" submenu, you would choose "Import Data-tier Application" to import the BACPAC file.
+
+
+
+
+
+User
+I'm getting connection error User account not received. when I try to connect to the Azure instance - how do I fix it?
+ChatGPT
+The error "User account not received" usually suggests there's an issue with the login information or the account you're using to connect to the Azure SQL Server instance.
+
+Here are a few steps you can take to troubleshoot and resolve this issue:
+
+Check the Authentication Type: Ensure you're using the correct authentication type when trying to connect. Azure SQL Server supports SQL Server Authentication and Azure Active Directory Authentication. If you're not sure, you might have created the server with SQL Server Authentication and specified a Server Admin Login and password. Try using those credentials with SQL Server Authentication.
+
+Check the Username and Password: Make sure you're entering the correct username and password. The username is usually in the format of 'username@servername'. The password should be the one you defined when creating the SQL Server instance.
+
+Reset the Password: If you're unsure about the password, you can reset it. To do so, go to the Azure portal, navigate to your SQL Server (not the database), and click on 'Reset password' in the Overview section.
+
+Firewall Rules: Ensure your client's IP address is added to the server's firewall rules. To check this, in the Azure portal, go to your SQL Server's page, click on "Firewalls and virtual networks", and verify that your client's IP is listed. If not, add a new rule with your IP.
+
+Check the Server Name: Verify that you're using the correct server name. It should be something like 'servername.database.windows.net'.
+
+Test with Other Tools: Try connecting using a different SQL Server client tool, like SQL Server Management Studio (SSMS), to verify if the issue is with Azure Data Studio or with the connection itself.
+
+If none of these steps solve the problem, it could be related to network issues or restrictions on the SQL Server instance itself, in which case you might need to contact your network administrator or Azure Support.
+
+
+
+
+
+User
+I've connected using SQL server management studio. How do I upload a bacpac to Azure instance using SQL server management studio?
+ChatGPT
+SQL Server Management Studio (SSMS) allows you to import a BACPAC file to an Azure SQL database. Here's how you can do this:
+
+Open SQL Server Management Studio (SSMS) and Connect to Azure SQL Database Server:
+
+Launch SSMS on your machine.
+In the "Connect to Server" dialog, enter your server's name (<servername>.database.windows.net), select "SQL Server Authentication", and enter your login credentials (username and password).
+Click "Connect" to establish a connection.
+Import the BACPAC File:
+
+In the "Object Explorer" window, right-click on the "Databases" node (under your connected server), and then select "Import Data-tier Application...".
+In the "Import Settings" screen of the wizard that appears, select "Import from local disk", and browse to the location of the BACPAC file you want to import.
+Click "Next".
+Configure Database Settings:
+
+In the "Database Settings" screen, you can specify the new database name and choose the edition, service objective (compute size), and the maximum size of the database.
+Click "Next".
+Review and Import:
+
+Review your settings in the "Summary" screen. If everything looks correct, click "Finish" to start the import process.
+The import process can take some time, depending on the size of the BACPAC file.
+Monitor the Process:
+
+The "Import Data-tier Application" process window will display the status of the operation. If the import is successful, you should see the new database in the "Databases" node in the Object Explorer.
+Remember to ensure that your client's IP address has been added to the server's firewall rules in Azure portal, otherwise you may not be able to connect from SSMS.
