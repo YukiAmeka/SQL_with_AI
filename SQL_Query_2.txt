@@ -1,0 +1,204 @@
+User
+Write a SQL query to retrieve product sales revenue and quantity growth rates, calculated as the percentage change in sales revenue and quantity from the previous quarter and year. It should perform the necessary data transformations and calculations. The query should return a data set which consists of following columns: [ProductName], [GrowthRevenueRate], [GrowthQuantityRate], [CurrentQuarter], [CurrentYear], [PreviousQuarter], [PreviousYear]. It should also be written according to best coding practices, including naming conventions and comments, be optimized to execute efficiently, ensuring minimal response time and resource consumption, and be designed in a way that allows it to handle larger datasets without significant performance degradation. Use the following columns in the query: [Total Excluding Tax] from table [Fact].[Sale] for calculating revenue, [Quantity] from table [Fact].[Sale] for calculating quantity, [Fiscal Year] & [Fiscal Month Number] from table [Dimension].[Date] joined with table [Fact].[Sale] on [Date] = [Invoice Date Key] for Current & Previous Year & Quarter calculation respectively, and [Stock Item] from table [Dimension].[Stock Item] joined with [Fact].[Sale] on [Stock Item Key] = [Stock Item Key] for Product Name
+ChatGPT
+Assuming the quarters are calculated as:
+
+Q1: Fiscal Month Number 1-3
+Q2: Fiscal Month Number 4-6
+Q3: Fiscal Month Number 7-9
+Q4: Fiscal Month Number 10-12
+Here is the SQL query:
+
+sql
+Copy code
+WITH SalesWithQuarterYear AS (
+    -- Determine the fiscal quarter and fiscal year for each sale
+    SELECT 
+        SI.[Stock Item] AS ProductName, 
+        S.[Total Excluding Tax] AS Revenue, 
+        S.[Quantity] AS Quantity, 
+        D.[Fiscal Year] AS FiscalYear,
+        CASE 
+            WHEN D.[Fiscal Month Number] BETWEEN 1 AND 3 THEN 1 
+            WHEN D.[Fiscal Month Number] BETWEEN 4 AND 6 THEN 2 
+            WHEN D.[Fiscal Month Number] BETWEEN 7 AND 9 THEN 3 
+            WHEN D.[Fiscal Month Number] BETWEEN 10 AND 12 THEN 4 
+        END AS FiscalQuarter
+    FROM 
+        [Fact].[Sale] S
+    JOIN 
+        [Dimension].[Date] D ON S.[Invoice Date Key] = D.[Date]
+    JOIN 
+        [Dimension].[Stock Item] SI ON S.[Stock Item Key] = SI.[Stock Item Key]
+),
+
+QuarterlyYearlySales AS (
+    -- Aggregate the sales and quantity data for each product, quarter, and year
+    SELECT 
+        ProductName,
+        SUM(Revenue) AS TotalRevenue, 
+        SUM(Quantity) AS TotalQuantity,
+        FiscalYear, 
+        FiscalQuarter
+    FROM 
+        SalesWithQuarterYear
+    GROUP BY 
+        ProductName, FiscalYear, FiscalQuarter
+),
+
+SalesGrowth AS (
+    -- Calculate the growth rate from the previous quarter and year
+    SELECT 
+        QYS.ProductName, 
+        ((QYS.TotalRevenue - LAG(QYS.TotalRevenue, 1) OVER (PARTITION BY QYS.ProductName ORDER BY QYS.FiscalYear, QYS.FiscalQuarter)) / NULLIF(LAG(QYS.TotalRevenue, 1) OVER (PARTITION BY QYS.ProductName ORDER BY QYS.FiscalYear, QYS.FiscalQuarter), 0)) * 100 AS GrowthRevenueRate,
+        ((QYS.TotalQuantity - LAG(QYS.TotalQuantity, 1) OVER (PARTITION BY QYS.ProductName ORDER BY QYS.FiscalYear, QYS.FiscalQuarter)) / NULLIF(LAG(QYS.TotalQuantity, 1) OVER (PARTITION BY QYS.ProductName ORDER BY QYS.FiscalYear, QYS.FiscalQuarter), 0)) * 100 AS GrowthQuantityRate,
+        QYS.FiscalYear AS CurrentYear, 
+        QYS.FiscalQuarter AS CurrentQuarter,
+        LAG(QYS.FiscalYear, 1) OVER (PARTITION BY QYS.ProductName ORDER BY QYS.FiscalYear, QYS.FiscalQuarter) AS PreviousYear,
+        LAG(QYS.FiscalQuarter, 1) OVER (PARTITION BY QYS.ProductName ORDER BY QYS.FiscalYear, QYS.FiscalQuarter) AS PreviousQuarter
+    FROM 
+        QuarterlyYearlySales QYS
+)
+
+-- Get the results with the desired column ordering
+SELECT 
+    ProductName,
+    GrowthRevenueRate,
+    GrowthQuantityRate,
+    CurrentQuarter,
+    CurrentYear,
+    PreviousQuarter,
+    PreviousYear
+FROM 
+    SalesGrowth
+ORDER BY 
+    ProductName, CurrentYear, CurrentQuarter;
+This SQL script first calculates the fiscal quarter for each record, then it aggregates the sales data and calculates the growth rates. The script uses window functions (LAG) to get the previous quarter's data, and it handles possible division by zero cases using the NULLIF function. It also partitions data by ProductName and orders by year and quarter to calculate growth rates accurately for each product. Finally, the script returns the results sorted by ProductName, CurrentYear, and CurrentQuarter.
+
+
+
+
+
+User
+Simplify quarters' calculation with a formula
+ChatGPT
+Sure, the formula for calculating the fiscal quarter based on the fiscal month number can be simplified using mathematical operations. The formula is CEILING([Fiscal Month Number] / 3). Here's how the SQL query will look:
+
+sql
+Copy code
+WITH SalesWithQuarterYear AS (
+    -- Determine the fiscal quarter and fiscal year for each sale
+    SELECT 
+        SI.[Stock Item] AS ProductName, 
+        S.[Total Excluding Tax] AS Revenue, 
+        S.[Quantity] AS Quantity, 
+        D.[Fiscal Year] AS FiscalYear,
+        CEILING(D.[Fiscal Month Number] / 3.0) AS FiscalQuarter
+    FROM 
+        [Fact].[Sale] S
+    JOIN 
+        [Dimension].[Date] D ON S.[Invoice Date Key] = D.[Date]
+    JOIN 
+        [Dimension].[Stock Item] SI ON S.[Stock Item Key] = SI.[Stock Item Key]
+),
+
+QuarterlyYearlySales AS (
+    -- Aggregate the sales and quantity data for each product, quarter, and year
+    SELECT 
+        ProductName,
+        SUM(Revenue) AS TotalRevenue, 
+        SUM(Quantity) AS TotalQuantity,
+        FiscalYear, 
+        FiscalQuarter
+    FROM 
+        SalesWithQuarterYear
+    GROUP BY 
+        ProductName, FiscalYear, FiscalQuarter
+),
+
+SalesGrowth AS (
+    -- Calculate the growth rate from the previous quarter and year
+    SELECT 
+        QYS.ProductName, 
+        ((QYS.TotalRevenue - LAG(QYS.TotalRevenue, 1) OVER (PARTITION BY QYS.ProductName ORDER BY QYS.FiscalYear, QYS.FiscalQuarter)) / NULLIF(LAG(QYS.TotalRevenue, 1) OVER (PARTITION BY QYS.ProductName ORDER BY QYS.FiscalYear, QYS.FiscalQuarter), 0)) * 100 AS GrowthRevenueRate,
+        ((QYS.TotalQuantity - LAG(QYS.TotalQuantity, 1) OVER (PARTITION BY QYS.ProductName ORDER BY QYS.FiscalYear, QYS.FiscalQuarter)) / NULLIF(LAG(QYS.TotalQuantity, 1) OVER (PARTITION BY QYS.ProductName ORDER BY QYS.FiscalYear, QYS.FiscalQuarter), 0)) * 100 AS GrowthQuantityRate,
+        QYS.FiscalYear AS CurrentYear, 
+        QYS.FiscalQuarter AS CurrentQuarter,
+        LAG(QYS.FiscalYear, 1) OVER (PARTITION BY QYS.ProductName ORDER BY QYS.FiscalYear, QYS.FiscalQuarter) AS PreviousYear,
+        LAG(QYS.FiscalQuarter, 1) OVER (PARTITION BY QYS.ProductName ORDER BY QYS.FiscalYear, QYS.FiscalQuarter) AS PreviousQuarter
+    FROM 
+        QuarterlyYearlySales QYS
+)
+
+-- Get the results with the desired column ordering
+SELECT 
+    ProductName,
+    GrowthRevenueRate,
+    GrowthQuantityRate,
+    CurrentQuarter,
+    CurrentYear,
+    PreviousQuarter,
+    PreviousYear
+FROM 
+    SalesGrowth
+ORDER BY 
+    ProductName, CurrentYear, CurrentQuarter;
+In this query, the CEILING(D.[Fiscal Month Number] / 3.0) calculates the fiscal quarter based on the fiscal month number. The CEILING function rounds up the value to the nearest whole number, effectively splitting the 12 months into four quarters.
+
+
+
+
+
+User
+Aggregate quantity and revenue in the same cte, where quarters are calculated
+ChatGPT
+Certainly, you can aggregate the quantity and revenue in the same CTE where quarters are calculated. Here's how you can do it:
+
+sql
+Copy code
+WITH SalesWithQuarterYear AS (
+    -- Determine the fiscal quarter and fiscal year for each sale, and aggregate quantity and revenue
+    SELECT 
+        SI.[Stock Item] AS ProductName, 
+        SUM(S.[Total Excluding Tax]) AS TotalRevenue, 
+        SUM(S.[Quantity]) AS TotalQuantity, 
+        D.[Fiscal Year] AS FiscalYear,
+        CEILING(D.[Fiscal Month Number] / 3.0) AS FiscalQuarter
+    FROM 
+        [Fact].[Sale] S
+    JOIN 
+        [Dimension].[Date] D ON S.[Invoice Date Key] = D.[Date]
+    JOIN 
+        [Dimension].[Stock Item] SI ON S.[Stock Item Key] = SI.[Stock Item Key]
+    GROUP BY 
+        SI.[Stock Item], D.[Fiscal Year], CEILING(D.[Fiscal Month Number] / 3.0)
+),
+
+SalesGrowth AS (
+    -- Calculate the growth rate from the previous quarter and year
+    SELECT 
+        SWQY.ProductName, 
+        ((SWQY.TotalRevenue - LAG(SWQY.TotalRevenue, 1) OVER (PARTITION BY SWQY.ProductName ORDER BY SWQY.FiscalYear, SWQY.FiscalQuarter)) / NULLIF(LAG(SWQY.TotalRevenue, 1) OVER (PARTITION BY SWQY.ProductName ORDER BY SWQY.FiscalYear, SWQY.FiscalQuarter), 0)) * 100 AS GrowthRevenueRate,
+        ((SWQY.TotalQuantity - LAG(SWQY.TotalQuantity, 1) OVER (PARTITION BY SWQY.ProductName ORDER BY SWQY.FiscalYear, SWQY.FiscalQuarter)) / NULLIF(LAG(SWQY.TotalQuantity, 1) OVER (PARTITION BY SWQY.ProductName ORDER BY SWQY.FiscalYear, SWQY.FiscalQuarter), 0)) * 100 AS GrowthQuantityRate,
+        SWQY.FiscalYear AS CurrentYear, 
+        SWQY.FiscalQuarter AS CurrentQuarter,
+        LAG(SWQY.FiscalYear, 1) OVER (PARTITION BY SWQY.ProductName ORDER BY SWQY.FiscalYear, SWQY.FiscalQuarter) AS PreviousYear,
+        LAG(SWQY.FiscalQuarter, 1) OVER (PARTITION BY SWQY.ProductName ORDER BY SWQY.FiscalYear, SWQY.FiscalQuarter) AS PreviousQuarter
+    FROM 
+        SalesWithQuarterYear SWQY
+)
+
+-- Get the results with the desired column ordering
+SELECT 
+    ProductName,
+    GrowthRevenueRate,
+    GrowthQuantityRate,
+    CurrentQuarter,
+    CurrentYear,
+    PreviousQuarter,
+    PreviousYear
+FROM 
+    SalesGrowth
+ORDER BY 
+    ProductName, CurrentYear, CurrentQuarter;
+This query simplifies the previous one by merging the SalesWithQuarterYear and QuarterlyYearlySales CTEs into a single CTE, which calculates the fiscal quarter, aggregates the quantity and revenue data, and groups them by the product, fiscal year, and fiscal quarter. The SalesGrowth CTE and the final query remain the same.
